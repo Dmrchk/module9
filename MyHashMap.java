@@ -19,20 +19,31 @@ public class MyHashMap<T, E>{
     }
 
     public void add(T key, E value) {
-        checker(key);
         Node temp = new Node(key, value);
         if (head == null) {
             head = temp;
-        } else {
+        }
+        if (checker(key)){
+            Node current = head;
+            for (int i = 0; i < size; i++) {
+                if (current.key == key){
+                    current.value = value;
+                    break;
+                }
+                current = current.next;
+            }
+        }
+        if(size != 0 && !checker(key)) {
             tail.next = temp;
         }
         tail = temp;
         size++;
     }
 
-    private void checker(T key){
+    private boolean checker(T key){
+        boolean b = false;
         if (size == 0){
-            return;
+            return false;
         }
         int counter = 0;
         Node current = head;
@@ -42,13 +53,14 @@ public class MyHashMap<T, E>{
                 counter++;
             }
             if (counter == 1){
-                throw new IllegalArgumentException();
+                b = true;
             }
             if (current.next == null){
                 break;
             }
             current = current.next;
         }
+        return b;
     }
 
     public void remove(T key) {
@@ -108,8 +120,11 @@ public class MyHashMap<T, E>{
         } else {
             String result = "[" + head.value;
             Node current = head.next;
-            for (int i = 0; i < size - 1; i++) {
+            for (int i = 0; i < size; i++) {
                 result += ", " + current.value;
+                if (current.next == null){
+                    break;
+                }
                 current = current.next;
             }
             result += "]";
@@ -117,3 +132,4 @@ public class MyHashMap<T, E>{
         }
     }
 }
+
