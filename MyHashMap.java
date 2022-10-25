@@ -1,135 +1,131 @@
-public class MyHashMap<T, E>{
-    private Node head;
-    private Node tail;
-    private int size;
+public class MyHashMap<K, V> {
+    private Entry<K, V>[] bucket;
+    private int size = 16;
 
+    @SuppressWarnings("unchecked")
     public MyHashMap() {
-        this.size = 0;
+        bucket = new Entry[size];
     }
 
-    private class Node {
-        private T key;
-        private E value;
-        Node next;
+    @SuppressWarnings("hiding")
+    private class Entry<K, V> {
+        private K key;
+        private V value;
+        private Entry<K, V> next;
 
-        public Node(T key, E value) {
-            this.value = value;
+        public Entry(K key, V value, Entry<K, V> next) {
             this.key = key;
+            this.value = value;
+            this.next = next;
         }
     }
 
-    public void add(T key, E value) {
-        Node temp = new Node(key, value);
-        if (head == null) {
-            head = temp;
-        }
-        if (checker(key)){
-            Node current = head;
-            for (int i = 0; i < size; i++) {
-                if (current.key == key){
-                    current.value = value;
-                    break;
+    private int hash(K key) {
+        return Math.abs(key.hashCode()) % size;
+    }
+
+    public void put(K newKey, V data) {
+        if (newKey == null)
+            return;
+        Entry<K, V> newEntry = new Entry<K, V>(newKey, data, null);
+        int hash = hash(newKey);
+        if (bucket[hash] == null) {
+            bucket[hash] = newEntry;
+        } else {
+            Entry<K, V> previous = null;
+            Entry<K, V> current = bucket[hash];
+
+            while (current != null) {
+                if (current.key.equals(newKey)) {
+                    if (previous == null) {
+                        newEntry.next = current.next;
+                        bucket[hash] = newEntry;
+                        return;
+                    } else {
+                        newEntry.next = current.next;
+                        previous.next = newEntry;
+                        return;
+                    }
                 }
+                previous = current;
                 current = current.next;
             }
+            previous.next = newEntry;
         }
-        if(size != 0 && !checker(key)) {
-            tail.next = temp;
-        }
-        tail = temp;
-        size++;
     }
 
-    private boolean checker(T key){
-        boolean b = false;
-        if (size == 0){
+    public V get(K key) {
+        int hash = hash(key);
+        if (bucket[hash] == null) {
+            return null;
+        } else {
+            Entry<K, V> temp = bucket[hash];
+            while (temp != null) {
+                if (temp.key.equals(key))
+                    return temp.value;
+                temp = temp.next;
+            }
+            return null;
+        }
+    }
+
+    public boolean remove(K deleteKey) {
+
+        int hash = hash(deleteKey);
+
+        if (bucket[hash] == null) {
+            return false;
+        } else {
+            Entry<K, V> previous = null;
+            Entry<K, V> current = bucket[hash];
+
+            while (current != null) {
+                if (current.key.equals(deleteKey)) {
+                    if (previous == null) {
+                        bucket[hash] = bucket[hash].next;
+                        return true;
+                    } else {
+                        previous.next = current.next;
+                        return true;
+                    }
+                }
+                previous = current;
+                current = current.next;
+            }
             return false;
         }
-        int counter = 0;
-        Node current = head;
-
-        for (int i = 0; i <= size; i++) {
-            if (key == current.key){
-                counter++;
-            }
-            if (counter == 1){
-                b = true;
-            }
-            if (current.next == null){
-                break;
-            }
-            current = current.next;
-        }
-        return b;
-    }
-
-    public void remove(T key) {
-        Node current = head;
-        for (int i = 0; i < size; i++) {
-            if (key == current.key){
-                break;
-            }
-            if (current.key != key){
-                if (i == size - 1 && current.next == null){
-                    throw new IllegalArgumentException();
-                }
-            }
-            current = current.next;
-        }
-        while (current.next != null){
-            current.key = current.next.key;
-            current.value = current.next.value;
-            current = current.next;
-        }
-        tail = current;
-        size--;
-    }
-
-    public void clear() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
     }
 
     public int size() {
-        return size;
+        int count = 0;
+        for(int i = 0; i < size; i++) {
+            if (bucket[i] != null) {
+                count++;
+            }
+        }
+        return count;
     }
 
-    public E get(T key) {
-        Node current = head;
-
-        for (int i = 0; i < size; i++) {
-            if (current.key != key){
-                if (i == size - 1 && current.next.key == null){
-                    throw new IndexOutOfBoundsException();
-                }
-            }
-            if (current.key == key){
-                break;
-            }
-            current = current.next;
-        }
-
-        return current.value;
-        }
+    @SuppressWarnings("unchecked")
+    public void clear() {
+        bucket = new Entry[bucket.length];
+    }
 
     @Override
     public String toString() {
-        if (head == null) {
-            return "[]";
-        } else {
-            String result = "[" + head.value;
-            Node current = head.next;
-            for (int i = 0; i < size; i++) {
-                result += ", " + current.value;
-                if (current.next == null){
-                    break;
-                }
-                current = current.next;
-            }
-            result += "]";
-            return result;
+        if (bucket == null) {
+            return "{}";
         }
+
+        for (int i = 0; i < size; i++) {
+            if (bucket[i] != null) {
+                Entry<K, V> entry = bucket[i];
+                while (entry != null) {
+                    System.out.print("{" + entry.key + "=" + entry.value + "}" + " ");
+                    entry = entry.next;
+                }
+            }
+        }
+        return "";
     }
 }
-
